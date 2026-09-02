@@ -1,0 +1,11 @@
+.agents/
+.claude/
+.remote-claude-mcp.json
+AGENTS.md
+CLAUDE.md
+meta.json
+sse-buffer.jsonl
+uploads/
+ev_rollout_upload_template.xlsx
+ev-rollout-dashboard.html
+*.xlsx
