@@ -127,12 +127,12 @@ tbody tr:hover{background:#f8fafc}
 .tree-wrap svg{display:block}
 .tlink{fill:none;stroke:#cbd5e1;stroke-width:2}
 .tlink-act{stroke:#94a3b8}
-.snode{width:100%;height:100%;border:2px solid;border-radius:10px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 6px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
-.snode .tname{font-size:11px;font-weight:700;color:var(--navy);line-height:1.12}
-.snode .tsub2{font-size:9px;color:var(--muted);font-weight:500;line-height:1.1}
-.snode .tcount{font-size:20px;font-weight:700;color:var(--navy);margin:0}
-.snode .tconv{font-size:9px;color:var(--muted);line-height:1.1}
-.snode .taction{font-size:9px;font-weight:700;margin-top:2px;padding:1px 7px;border-radius:10px;line-height:1.3}
+.snode{width:100%;height:100%;border:2px solid;border-radius:10px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3px 4px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.snode .tname{font-size:10px;font-weight:700;color:var(--navy);line-height:1.1;max-width:100%;word-break:break-word}
+.snode .tsub2{font-size:8px;color:var(--muted);font-weight:500;line-height:1.05;margin-top:1px}
+.snode .tcount{font-size:18px;font-weight:700;color:var(--navy);margin:1px 0 0}
+.snode .tconv{font-size:8px;color:var(--muted);line-height:1.05}
+.snode .taction{font-size:8px;font-weight:700;margin-top:2px;padding:1px 6px;border-radius:10px;line-height:1.25;white-space:nowrap}
 .snode.root{border-color:var(--navy);background:linear-gradient(135deg,#0b2545,#13315c);color:#fff}
 .snode.root .tname{color:#fff}.snode.root .tcount{color:#fff}.snode.root .tconv{color:rgba(255,255,255,.7)}
 .snode.assessed{border-color:var(--blue);background:#eff6ff}
@@ -634,17 +634,17 @@ function treeHTML(){
     id:'root',name:'Total Pods',count:K.total,sub:`${K.live} live · ${K.upcoming} upc`,type:'root',
     children:[
       {id:'evaluated',name:'Evaluated',count:K.evaluated,sub:pct(K.evaluated,K.total)+' of total',type:'assessed',children:[
-        {id:'feasible',name:'Feasible',sub2:'space ✓ + power ✓',count:K.feasible,sub:pct(K.feasible,K.evaluated)+' of evaluated',type:'feasible',children:[
-          {id:'noc_ok',name:'NOC Approved',count:K.nocApproved,sub:pct(K.nocApproved,K.feasible)+' of feasible',type:'noc',children:[
-            {id:'rollout',name:'Vendor Ready → Final Rollout',sub2:'installed / in-progress',count:K.vendorReady,sub:pct(K.vendorReady,K.nocApproved)+' of NOC',type:'rollout',action:'→ Final Rollout',actionCls:'act-green'},
-            {id:'vendor_blocked',name:'Vendor Blocked',count:K.vendorBlocked,sub:'of NOC approved',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
+        {id:'feasible',name:'Feasible',sub2:'space+power ✓',count:K.feasible,sub:pct(K.feasible,K.evaluated)+' of eval',type:'feasible',children:[
+          {id:'noc_ok',name:'NOC Approved',count:K.nocApproved,sub:pct(K.nocApproved,K.feasible)+' of feas',type:'noc',children:[
+            {id:'rollout',name:'Vendor Ready',sub2:'Final Rollout',count:K.vendorReady,sub:pct(K.vendorReady,K.nocApproved)+' of NOC',type:'rollout',action:'→ Final Rollout',actionCls:'act-green'},
+            {id:'vendor_blocked',name:'Vendor Blocked',count:K.vendorBlocked,sub:'of NOC ok',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
           ]},
-          {id:'noc_pending',name:'NOC Pending / Declined',count:K.nocPending,sub:'of feasible',type:'leaf-noc',action:'→ NOC acceleration',actionCls:'act-amber'}
+          {id:'noc_declined',name:'NOC No / WIP',count:K.nocNo+'/'+K.nocWip,sub:'of feasible',type:'leaf-noc',action:'→ NOC acceleration',actionCls:'act-amber'}
         ]},
-        {id:'notfeas',name:'Not Feasible',count:K.notFeasEval,sub:pct(K.notFeasEval,K.evaluated)+' of evaluated',type:'notfeasible',children:[
-          {id:'space',name:'Space Blocked',count:K.nfSpace,type:'leaf-space',action:'→ Re-site / deprioritize',actionCls:'act-red'},
+        {id:'notfeas',name:'Not Feasible',count:K.notFeasEval,sub:pct(K.notFeasEval,K.evaluated)+' of eval',type:'notfeasible',children:[
+          {id:'space',name:'Space Blocked',count:K.nfSpace,type:'leaf-space',action:'→ Re-site',actionCls:'act-red'},
           {id:'power',name:'Power Blocked',count:K.nfPower,type:'leaf-power',action:'→ split on vendor',children:[
-            {id:'power_v',name:'+ Vendor Interest',count:K.nfPowerV,type:'leaf-roi',action:'→ ROI calculation',actionCls:'act-purple'},
+            {id:'power_v',name:'+ Vendor Interest',count:K.nfPowerV,type:'leaf-roi',action:'→ ROI calc',actionCls:'act-purple'},
             {id:'power_nv',name:'No Vendor',count:K.nfPowerNV,type:'leaf-grey',action:'→ Source vendor',actionCls:'act-grey'}
           ]},
           {id:'both',name:'Both Blocked',count:K.nfBoth,type:'leaf-both',action:'→ Deprioritize',actionCls:'act-red'}
@@ -660,7 +660,7 @@ function treeHTML(){
     else{n.children.forEach(c=>layout(c,level+1));n.xs=(n.children[0].xs+n.children[n.children.length-1].xs)/2;}
   }
   layout(TREE,0);
-  const nodeW=146,nodeH=78,xGap=16,yGap=52,pad=24;
+  const nodeW=158,nodeH=82,xGap=14,yGap=48,pad=22;
   const xPix=s=>pad+s*(nodeW+xGap);
   const yPix=l=>pad+l*(nodeH+yGap);
   const W=pad*2+numLeaves*(nodeW+xGap)-xGap;
@@ -776,7 +776,7 @@ function renderT0(){
       <tr><td style="padding-left:48px">├── NOC Approved</td><td>${K.nocApproved}</td><td>${pct(K.nocApproved,K.feasible)}</td><td>—</td><td>—</td></tr>
       <tr><td style="padding-left:64px">├─── Vendor Ready → <b>Final Rollout</b></td><td><span class="pos">${K.vendorReady}</span></td><td>${pct(K.vendorReady,K.nocApproved)}</td><td>Complete rollout</td><td>Ops</td></tr>
       <tr><td style="padding-left:64px">├─── Vendor Blocked</td><td>${K.vendorBlocked}</td><td>${pct(K.vendorBlocked,K.nocApproved)}</td><td>Reassign vendor</td><td>Vendor Mgmt</td></tr>
-      <tr><td style="padding-left:48px">├── NOC Pending/Declined</td><td>${K.nocPending}</td><td>${pct(K.nocPending,K.feasible)}</td><td>NOC acceleration</td><td>RE Team</td></tr>
+      <tr><td style="padding-left:48px">├── NOC No / WIP</td><td>${K.nocNo} / ${K.nocWip}</td><td>${pct(K.nocNo+K.nocWip,K.feasible)}</td><td>NOC acceleration</td><td>RE Team</td></tr>
       <tr><td style="padding-left:32px">├─ Not Feasible</td><td>${K.notFeasEval}</td><td>${pct(K.notFeasEval,K.evaluated)}</td><td>—</td><td>—</td></tr>
       <tr><td style="padding-left:48px">├── Space Blocked</td><td>${K.nfSpace}</td><td>—</td><td>Re-site / deprioritize</td><td>Ops</td></tr>
       <tr><td style="padding-left:48px">├── Power Blocked</td><td>${K.nfPower}</td><td>—</td><td>—</td><td>—</td></tr>
