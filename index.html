@@ -259,7 +259,7 @@ tbody tr:hover{background:#f8fafc}
 const DATA = {
   as_of: "2026-03-15",
   total: 1227, live_universe: 1214, upcoming_universe: 13,
-  assessed: 801, not_assessed: 426, evaluated: 345, under_eval: 8,
+  assessed: 801, not_assessed: 426, evaluated: 345, under_eval: 456,
   feasible: 154, not_feas_eval: 191, space_only: 70, power_only: 38,
   both_blocked: 83,
   power_yes: 228, power_no: 121, power_unknown: 0,
@@ -336,11 +336,13 @@ function computeKPIs(universe,assessed,roi){
   const notAssessed=total-assessedN;
   // 3-state model:
   //   Evaluated       = BOTH space and power have a concrete value (Y/N)
-  //   Under Evaluation= sent for check (exactly ONE of space/power has Y/N, other is WIP/blank/pending-text)
-  //   Not Evaluated   = BOTH WIP/blank (or pod not in Assessment sheet at all)
+  //   Under Evaluation= pod is with the team for check — ANY pending signal:
+  //                     exactly one of space/power has Y/N, OR either has WIP/Pending/With-RE-Team text
+  //   Not Evaluated   = nothing has started: both space and power blank/unknown (or pod not in sheet)
   const known=(v)=>v==="Y"||v==="N";
+  const pending=(v)=>v==="wip";
   const evaluated=assessed.filter(p=>known(p.space_available)&&known(p.power_available)).length;
-  const underEval=assessed.filter(p=>(known(p.space_available)!==known(p.power_available))).length;
+  const underEval=assessed.filter(p=>!p.feasible&&(known(p.space_available)!==known(p.power_available))||(pending(p.space_available)||pending(p.power_available))).length;
   const feasible=assessed.filter(p=>p.feasible).length;
   // Not feasible UNDER EVALUATED = evaluated pods that are not feasible (excludes under/not-evaluated)
   const notFeasEval=evaluated-feasible;
@@ -563,8 +565,8 @@ function podsForTile(key){
     case "live": return a.filter(p=>p.store_status==="live");
     case "upcoming_uni": return u.filter(p=>p.store_status==="upcoming_live");
     case "evaluated": return a.filter(p=>(p.space_available==="Y"||p.space_available==="N")&&(p.power_available==="Y"||p.power_available==="N"));
-    case "underEval": return a.filter(p=>((p.space_available==="Y"||p.space_available==="N")!==(p.power_available==="Y"||p.power_available==="N")));
-    case "noteval": return u.filter(p=>{const as=a.find(x=>x.pod_id===p.pod_id);return !(as&&((as.space_available==="Y"||as.space_available==="N")&&(as.power_available==="Y"||as.power_available==="N")))&&!a.some(x=>x.pod_id===p.pod_id&&((x.space_available==="Y"||x.space_available==="N")!==(x.power_available==="Y"||x.power_available==="N")));}).map(p=>{const as=a.find(x=>x.pod_id===p.pod_id)||{};return {...p,...as,noc_status:as.noc_status||null};});
+    case "underEval": return a.filter(p=>((p.space_available==="Y"||p.space_available==="N")!==(p.power_available==="Y"||p.power_available==="N"))||p.space_available==="wip"||p.power_available==="wip");
+    case "noteval": return u.filter(p=>{const as=a.find(x=>x.pod_id===p.pod_id);const started=as&&(((as.space_available==="Y"||as.space_available==="N")&&(as.power_available==="Y"||as.power_available==="N"))||((as.space_available==="Y"||as.space_available==="N")!==(as.power_available==="Y"||as.power_available==="N"))||as.space_available==="wip"||as.power_available==="wip");return !started;}).map(p=>{const as=a.find(x=>x.pod_id===p.pod_id)||{};return {...p,...as,noc_status:as.noc_status||null};});
     case "feasible": return a.filter(p=>p.feasible);
     case "notFeasEval": return a.filter(p=>!p.feasible&&(p.space_available!=="unknown"||p.power_available!=="unknown"));
     case "notFeasEval": return a.filter(p=>!p.feasible&&(p.space_available!=="unknown"||p.power_available!=="unknown"));
