@@ -598,6 +598,7 @@ function podsForTile(key){
     case "nl_wip": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live&&!/rejected by vendor/i.test(String(p.notes||""))&&p.target_go_live&&w30(p.target_go_live));
     case "nl_vden": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live&&/rejected by vendor/i.test(String(p.notes||"")));
     case "noc_upcoming": return a.filter(p=>p.store_status==="upcoming_live");
+    case "noc_yts": return a.filter(p=>p.noc_status==="Yes"&&!p.target_go_live&&!(p.notes&&/reject/i.test(String(p.notes))));
     case "nocNo": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="No");
     case "nocWip": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="WIP");
     case "liveEv": return a.filter(p=>p.ev_live);
@@ -667,7 +668,8 @@ function treeHTML(){
               {id:'nl_wip',name:'Work In Progress',sub2:'30d live · yet to start',count:K.nlWip+' · '+K.nlYetToStart,sub:'within pill',type:'leaf-noc',action:'→ 30d live / start',actionCls:'act-amber'},
               {id:'nl_vden',name:'Vendor Denied',sub2:'rejected by vendor',count:K.nlVendorDenied,sub:'of not live',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
             ]},
-            {id:'noc_upcoming',name:'Upcoming',sub2:'NOC always Yes',count:K.nocYesUpc,sub:'of NOC ✓',type:'noc',action:'→ Go-live plan',actionCls:'act-blue'}
+            {id:'noc_upcoming',name:'Upcoming',sub2:'NOC always Yes',count:K.nocYesUpc,sub:'of NOC ✓',type:'noc',action:'→ Go-live plan',actionCls:'act-blue'},
+            {id:'noc_yts',name:'Yet to Start',sub2:'NOC Yes · no target',count:K.yetToStart,sub:'no go-live set',type:'leaf-noc',action:'→ Set go-live',actionCls:'act-amber'}
           ]},
           {id:'noc_declined',name:'NOC No / WIP',count:K.nocNo+'/'+K.nocWip,sub:'of feasible',type:'leaf-noc',action:'→ NOC acceleration',actionCls:'act-amber'}
         ]},
