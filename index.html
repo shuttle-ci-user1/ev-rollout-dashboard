@@ -485,6 +485,14 @@ function applyData(newData){
   K.outOfScope=DATA.out_of_scope;
   K.nocYes=DATA.noc_yes; K.nocNo=DATA.noc_no; K.nocWip=DATA.noc_wip;
   K.nocYesLive=DATA.noc_yes_live; K.nocYesUpc=DATA.noc_yes_upc;
+  // Station live split under NOC Yes (live + feasible + NOC-Yes pods only)
+  K.stationLive=RAW.assessed.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&p.ev_live).length;
+  const nl=RAW.assessed.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live);
+  K.stationNotLive=nl.length;
+  K.nlVendorDenied=nl.filter(p=>/rejected by vendor/i.test(String(p.notes||""))).length;
+  const nlRest=nl.filter(p=>!/rejected by vendor/i.test(String(p.notes||"")));
+  K.nlWip=nlRest.filter(p=>p.target_go_live&&w30(p.target_go_live)).length;
+  K.nlYetToStart=nlRest.filter(p=>!p.target_go_live).length;
   K.nocYesLive=DATA.noc_yes_live; K.nocYesUpc=DATA.noc_yes_upc;
   K.powerYes=DATA.power_yes; K.powerNo=DATA.power_no; K.powerUnknown=DATA.power_unknown;
   K.onlyPowerYes=DATA.only_power_yes; K.onlyPowerWip=DATA.only_power_wip; K.onlyPowerNo=DATA.only_power_no; K.onlyPowerTotal=DATA.only_power_total;
@@ -581,6 +589,10 @@ function podsForTile(key){
     case "onlyPower": return a.filter(p=>p.power_available==="Y");
     case "onlySpace": return a.filter(p=>p.space_available==="Y");
     case "nocYes": return a.filter(p=>(p.store_status==="live"&&p.feasible&&p.noc_status==="Yes")||p.store_status==="upcoming_live");
+    case "station_live": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&p.ev_live);
+    case "station_notlive": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live);
+    case "nl_wip": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live&&!/rejected by vendor/i.test(String(p.notes||""))&&p.target_go_live&&w30(p.target_go_live));
+    case "nl_vden": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="Yes"&&!p.ev_live&&/rejected by vendor/i.test(String(p.notes||"")));
     case "nocNo": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="No");
     case "nocWip": return a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status==="WIP");
     case "liveEv": return a.filter(p=>p.ev_live);
@@ -645,8 +657,11 @@ function treeHTML(){
       {id:'evaluated',name:'Evaluated',count:K.evaluated,sub:pct(K.evaluated,K.total)+' of total',type:'assessed',children:[
         {id:'feasible',name:'Feasible',sub2:'space+power ✓',count:K.feasible,sub:pct(K.feasible,K.evaluated)+' of eval',type:'feasible',children:[
           {id:'noc_ok',name:'NOC Approved',count:K.nocApproved,sub:pct(K.nocApproved,K.feasible)+' of feas',type:'noc',children:[
-            {id:'rollout',name:'Vendor Ready',sub2:'Final Rollout',count:K.vendorReady,sub:pct(K.vendorReady,K.nocApproved)+' of NOC',type:'rollout',action:'→ Final Rollout',actionCls:'act-green'},
-            {id:'vendor_blocked',name:'Vendor Blocked',count:K.vendorBlocked,sub:'of NOC ok',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
+            {id:'station_live',name:'Station Live',count:K.stationLive,sub:pct(K.stationLive,K.nocApproved)+' of NOC ✓',type:'rollout',action:'→ Final Rollout',actionCls:'act-green'},
+            {id:'station_notlive',name:'Station Not Live',count:K.stationNotLive,sub:pct(K.stationNotLive,K.nocApproved)+' of NOC ✓',type:'noc',children:[
+              {id:'nl_wip',name:'Work In Progress',sub2:'30d live · yet to start',count:K.nlWip+' · '+K.nlYetToStart,sub:'within pill',type:'leaf-noc',action:'→ 30d live / start',actionCls:'act-amber'},
+              {id:'nl_vden',name:'Vendor Denied',sub2:'rejected by vendor',count:K.nlVendorDenied,sub:'of not live',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
+            ]}
           ]},
           {id:'noc_declined',name:'NOC No / WIP',count:K.nocNo+'/'+K.nocWip,sub:'of feasible',type:'leaf-noc',action:'→ NOC acceleration',actionCls:'act-amber'}
         ]},
