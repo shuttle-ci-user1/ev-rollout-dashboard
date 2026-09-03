@@ -592,43 +592,33 @@ function podsForTile(key){
 }
 function openModal(title,key){
   const pods=podsForTile(key);
-  // default filter: all of space/power/noc
-  let fs={space:"all",power:"all",noc:"all"};
+  // single filter: City only
+  let fc="all";
   const renderTable=()=>{
-    const f=pods.filter(p=>{
-      if(fs.space!=="all"&&p.space_available!==fs.space) return false;
-      if(fs.power!=="all"&&p.power_available!==fs.power) return false;
-      const nv=p.noc_status||"WIP";
-      if(fs.noc!=="all"&&nv!==fs.noc) return false;
-      return true;
-    });
+    const f=pods.filter(p=>fc==="all"||p.city===fc);
     const b=(v)=>v==="Y"?'<span class="badge-y">Y</span>':v==="N"?'<span class="badge-n">N</span>':'<span class="badge-w">WIP</span>';
     const rows=f.map(p=>`<tr><td><b>${p.pod_id||"—"}</b></td><td>${p.pod_name||"—"}</td><td>${p.city||"—"}</td><td>${p.store_status==="upcoming_live"?"<span style=color:#2563eb>upcoming</span>":"live"}</td><td>${b(p.space_available||"unknown")}</td><td>${b(p.power_available||"unknown")}</td><td>${b(p.noc_status||"WIP")}</td><td>${p.target_go_live||"—"}</td><td style="font-size:11px">${(p.notes||"").slice(0,40)}</td></tr>`).join("");
     return `<div class="cnt">${f.length} pod(s)${f.length!==pods.length?" (of "+pods.length+" after filter)":""}</div>
       <table><thead><tr><th>Pod ID</th><th>Name</th><th>City</th><th>Store</th><th>Space</th><th>Power</th><th>NOC</th><th>Target go-live</th><th>Notes</th></tr></thead><tbody>${rows||'<tr><td colspan=9 style=text-align:center;color:var(--muted)>No pods match the filter</td></tr>'}</tbody></table>`;
   };
   const filterBar=()=>{
-    const opt=(name,val,lbl,sel)=>`<div class="fgrp"><input type="checkbox" id="f_${name}_${val}" ${sel?"checked":""}><label for="f_${name}_${val}">${lbl}</label></div>`;
+    const cities=[...new Set(pods.map(p=>p.city).filter(Boolean))].sort();
     return `<div class="modal-filters">
-      <span class="flbl">Space</span>
-      <div class="fgrp"><input type="checkbox" id="f_space_all" ${fs.space==="all"?"checked":""}><label for="f_space_all">All</label></div>
-      ${opt("space","Y","Y",fs.space==="Y")}${opt("space","N","N",fs.space==="N")}${opt("space","unknown","WIP",fs.space==="unknown")}
-      <span class="flbl" style="margin-left:8px">Power</span>
-      <div class="fgrp"><input type="checkbox" id="f_power_all" ${fs.power==="all"?"checked":""}><label for="f_power_all">All</label></div>
-      ${opt("power","Y","Y",fs.power==="Y")}${opt("power","N","N",fs.power==="N")}${opt("power","unknown","WIP",fs.power==="unknown")}
-      <span class="flbl" style="margin-left:8px">NOC</span>
-      <div class="fgrp"><input type="checkbox" id="f_noc_all" ${fs.noc==="all"?"checked":""}><label for="f_noc_all">All</label></div>
-      ${opt("noc","Yes","Y",fs.noc==="Yes")}${opt("noc","No","N",fs.noc==="No")}${opt("noc","WIP","WIP",fs.noc==="WIP")}
+      <span class="flbl">City</span>
+      <select id="fCity" onchange="window.__modalCity=this.value" style="cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-weight:600;font-size:12px;max-width:220px">
+        <option value="all">All cities</option>
+        ${cities.map(c=>`<option value="${c}" ${fc===c?"selected":""}>${c}</option>`).join("")}
+      </select>
     </div>`;
   };
   const root=document.getElementById("modalRoot");
   const draw=()=>{ root.innerHTML=`<div class="modal-overlay" id="ovl"><div class="modal"><div class="modal-head"><h3>${title}</h3><span class="close" id="mclose">×</span></div>${filterBar()}<div class="modal-body" id="mbody">${renderTable()}</div></div></div>`;
-    document.getElementById("mclose").onclick=()=>{root.innerHTML="";};
-    document.getElementById("ovl").onclick=(e)=>{if(e.target.id==="ovl")root.innerHTML="";};
-    // wire filters (radio-like per group)
-    const wire=(name,vals)=>vals.forEach(v=>{const el=document.getElementById("f_"+name+"_"+v);if(el)el.onchange=()=>{vals.forEach(x=>{if(x!==v){const o=document.getElementById("f_"+name+"_"+x);if(o)o.checked=false;}});if(v==="all"){["Y","N","unknown" ].forEach(x=>{const o=document.getElementById("f_"+name+"_"+x);if(o)o.checked=false;});}else{const o=document.getElementById("f_"+name+"_all");if(o)o.checked=false;} fs[name]=v; draw();};});
-    wire("space",["all","Y","N","unknown"]); wire("power",["all","Y","N","unknown"]); wire("noc",["all","Yes","No","WIP"]);
+    document.getElementById("mclose").onclick=()=>{root.innerHTML="";window.__modalCity="all";};
+    document.getElementById("ovl").onclick=(e)=>{if(e.target.id==="ovl"){root.innerHTML="";window.__modalCity="all";}};
+    // city filter: re-render table only, keep the dropdown selection
+    document.getElementById("fCity").onchange=(e)=>{ fc=e.target.value; const body=document.getElementById("mbody"); body.innerHTML=renderTable(); };
   };
+  window.__modalCity="all";
   draw();
 }
 
