@@ -868,17 +868,13 @@ function renderT0(){
     <tbody>
       <tr><td><b>Total Pods</b></td><td>${K.total}</td><td>—</td><td>—</td><td>—</td></tr>
       <tr><td style="padding-left:16px">├ Evaluated</td><td>${K.evaluated}</td><td>${pct(K.evaluated,K.total)}</td><td>—</td><td>—</td></tr>
-      <tr><td style="padding-left:32px">├─ Feasible (space ✓ + power ✓)</td><td>${K.feasible}</td><td>${pct(K.feasible,K.evaluated)}</td><td>—</td><td>—</td></tr>
-      <tr><td style="padding-left:48px">├── NOC Approved</td><td>${K.nocApproved}</td><td>${pct(K.nocApproved,K.feasible)}</td><td>—</td><td>—</td></tr>
-      <tr><td style="padding-left:64px">├─── Vendor Ready → <b>Final Rollout</b></td><td><span class="pos">${K.vendorReady}</span></td><td>${pct(K.vendorReady,K.nocApproved)}</td><td>Complete rollout</td><td>Ops</td></tr>
-      <tr><td style="padding-left:64px">├─── Vendor Blocked</td><td>${K.vendorBlocked}</td><td>${pct(K.vendorBlocked,K.nocApproved)}</td><td>Reassign vendor</td><td>Vendor Mgmt</td></tr>
-      <tr><td style="padding-left:48px">├── NOC No / WIP</td><td>${K.nocNo} / ${K.nocWip}</td><td>${pct(K.nocNo+K.nocWip,K.feasible)}</td><td>NOC acceleration</td><td>RE Team</td></tr>
-      <tr><td style="padding-left:32px">├─ Not Feasible</td><td>${K.notFeasEval}</td><td>${pct(K.notFeasEval,K.evaluated)}</td><td>—</td><td>—</td></tr>
-      <tr><td style="padding-left:48px">├── Space Blocked</td><td>${K.nfSpace}</td><td>—</td><td>Re-site / deprioritize</td><td>Ops</td></tr>
-      <tr><td style="padding-left:48px">├── Power Blocked</td><td>${K.nfPower}</td><td>—</td><td>—</td><td>—</td></tr>
-      <tr><td style="padding-left:64px">├─── + Vendor Interest → <b>ROI Calc</b></td><td>${K.nfPowerV}</td><td>—</td><td>Run ROI → enhance / operate / reject</td><td>City Leads</td></tr>
-      <tr><td style="padding-left:64px">├─── No Vendor</td><td>${K.nfPowerNV}</td><td>—</td><td>Source vendor</td><td>Vendor Mgmt</td></tr>
-      <tr><td style="padding-left:48px">├── Both Blocked</td><td>${K.nfBoth}</td><td>—</td><td>Deprioritize</td><td>Ops</td></tr>
+      <tr><td style="padding-left:32px">├─ Station Live → <b>Final Rollout</b></td><td><span class="pos">${K.stationLive}</span></td><td>${pct(K.stationLive,K.evaluated)}</td><td>Complete rollout</td><td>Ops</td></tr>
+      <tr><td style="padding-left:32px">├─ Station Not Live</td><td>${K.stationNotLive}</td><td>${pct(K.stationNotLive,K.evaluated)}</td><td>—</td><td>—</td></tr>
+      <tr><td style="padding-left:48px">├── Space Issue (space = N)</td><td>${K.spaceIssue}</td><td>—</td><td>Re-site / resize</td><td>Ops</td></tr>
+      <tr><td style="padding-left:48px">├── Power Issue (power = N)</td><td>${K.powerIssue}</td><td>—</td><td>Augment power</td><td>Ops</td></tr>
+      <tr><td style="padding-left:48px">├── Vendor Issue (vendor denied)</td><td>${K.vendorIssue}</td><td>—</td><td>Reassign vendor</td><td>Vendor Mgmt</td></tr>
+      <tr><td style="padding-left:48px">├── NOC Issue (NOC = No / WIP)</td><td>${K.nocIssue}</td><td>—</td><td>NOC acceleration</td><td>RE Team</td></tr>
+      <tr><td style="padding-left:32px">├─ Upcoming</td><td>${K.upcomingPods}</td><td>${pct(K.upcomingPods,K.evaluated)}</td><td>Await go-live</td><td>Ops</td></tr>
       <tr><td style="padding-left:16px">├ Under Evaluation</td><td>${K.underEval}</td><td>${pct(K.underEval,K.total)}</td><td>Await RE check</td><td>RE Team</td></tr>
       <tr><td style="padding-left:16px">└ Not Evaluated</td><td>${K.total-K.evaluated-K.underEval}</td><td>${pct(K.total-K.evaluated-K.underEval,K.total)}</td><td>Complete assessment</td><td>Ops</td></tr>
     </tbody></table>
