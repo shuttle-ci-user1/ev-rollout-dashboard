@@ -614,8 +614,9 @@ function openModal(title,key){
   let fc="all";
   const renderTable=()=>{
     const f=pods.filter(p=>fc==="all"||p.city===fc);
-    const b=(v)=>v==="Y"?'<span class="badge-y">Y</span>':v==="N"?'<span class="badge-n">N</span>':'<span class="badge-w">WIP</span>';
-    const rows=f.map(p=>`<tr><td><b>${p.pod_id||"—"}</b></td><td>${p.pod_name||"—"}</td><td>${p.city||"—"}</td><td>${p.store_status==="upcoming_live"?"<span style=color:#2563eb>upcoming</span>":"live"}</td><td>${b(p.space_available||"unknown")}</td><td>${b(p.power_available||"unknown")}</td><td>${b(p.noc_status||"WIP")}</td><td>${p.target_go_live||"—"}</td><td style="font-size:11px">${(p.notes||"").slice(0,40)}</td></tr>`).join("");
+    const b=(v)=>v==="Y"?'<span class="badge-y">Y</span>':v==="N"?'<span class="badge-n">N</span>':v==="wip"?'<span class="badge-w">WIP</span>':'<span style="color:var(--muted2)">—</span>';
+    const nocDisp=(p)=>{ if(p.store_status==="upcoming_live") return '<span class="badge-y">Yes</span>'; const v=p.noc_status; return v==="Yes"?'<span class="badge-y">Yes</span>':v==="No"?'<span class="badge-n">No</span>':v==="WIP"?'<span class="badge-w">WIP</span>':'<span style="color:var(--muted2)">—</span>'; };
+    const rows=f.map(p=>`<tr><td><b>${p.pod_id||"—"}</b></td><td>${p.pod_name||"—"}</td><td>${p.city||"—"}</td><td>${p.store_status==="upcoming_live"?"<span style=color:#2563eb>upcoming</span>":"live"}</td><td>${b(p.space_available)}</td><td>${b(p.power_available)}</td><td>${nocDisp(p)}</td><td>${p.target_go_live||"—"}</td><td style="font-size:11px">${(p.notes||"").slice(0,40)}</td></tr>`).join("");
     return `<div class="cnt">${f.length} pod(s)${f.length!==pods.length?" (of "+pods.length+" after filter)":""}</div>
       <table><thead><tr><th>Pod ID</th><th>Name</th><th>City</th><th>Store</th><th>Space</th><th>Power</th><th>NOC</th><th>Target go-live</th><th>Notes</th></tr></thead><tbody>${rows||'<tr><td colspan=9 style=text-align:center;color:var(--muted)>No pods match the filter</td></tr>'}</tbody></table>`;
   };
