@@ -282,7 +282,8 @@ function normSpace(v){
   if(["y","yes","available","space  available"].includes(s)) return "Y";
   if(["n","no","not available","not available-common parking","not avaliblity","space not available","not availablity","pod under closer","not available. "].includes(s)) return "N";
   if(["wip","work in progress","pending","with re team","sent to re team"].includes(s)) return "wip";
-  if(["to be confirmed","yet to launch","#n/a","unknown","under re-location","re-location"].includes(s)) return "unknown";
+  if(["to be confirmed","yet to launch","#n/a","unknown","under re-location","re-location","under evaluation","under-evaluation","underevaluation","in evaluation","being evaluated"].includes(s)) return "wip";
+  if(["to be confirmed","yet to launch","#n/a","unknown"].includes(s)) return "unknown";
   if(/sq\s*'?ft|sqft|sq\s*fit/.test(s)) return "Y";
   if(s.includes("available") && !s.includes("not")) return "Y";
   if(s.includes("not") && s.includes("avail")) return "N";
@@ -294,6 +295,7 @@ function normPower(v){
   const s=String(v).trim().toLowerCase();
   if(["y","yes"].includes(s)) return "Y";
   if(["n","no"].includes(s)) return "N";
+  if(s.includes("under eval")) return "wip";
   if(s) return "wip";               // WIP / Pending / With RE Team / any text = pending check
   return "unknown";
 }
