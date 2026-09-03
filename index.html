@@ -645,6 +645,40 @@ function populateCities(){
   const sel=document.getElementById("cityFilter");
   sel.value=["All","Top4","Top7"].includes(sel.value)?sel.value:"All";
 }
+/* ============ CITY RATE CARD (extension cost) ============ */
+// Per-kWh cities: extension_cost = rate × additional_load
+// Hyderabad: stepped flat — ₹50k if addl ≤ 10 kWh, ₹1L if addl > 10 kWh
+// Transformer trigger: Bangalore > 25 kWh (max 40 with extensions); others > 40 kWh
+const CITY_RATE_CARD = {
+  bangalore: { rate: 3000,  txKw: 25, maxLoad: 40, kind: 'perkwh' },
+  delhi:     { rate: 5000,  txKw: 40, kind: 'perkwh' },
+  mumbai:    { rate: 10000, txKw: 40, kind: 'perkwh' },
+  gurgaon:   { rate: 2500,  txKw: 40, kind: 'perkwh' },
+  hyderabad: { rate: 0,     txKw: 40, kind: 'stepped', flat1: 50000, flat2: 100000, step: 10 }
+};
+function cityKey(c){ return String(c||'').toLowerCase().replace(/\s+/g,'').trim(); }
+function rateCardFor(c){
+  const k=cityKey(c);
+  if(k.includes('bengal')||k.includes('bangal')) return CITY_RATE_CARD.bangalore;
+  if(k.includes('delhi')) return CITY_RATE_CARD.delhi;
+  if(k.includes('mumbai')||k.includes('bombay')) return CITY_RATE_CARD.mumbai;
+  if(k.includes('gurgaon')||k.includes('gurugram')) return CITY_RATE_CARD.gurgaon;
+  if(k.includes('hyderabad')||k.includes('hyd')) return CITY_RATE_CARD.hyderabad;
+  return null;
+}
+// Extension cost (₹) for a given additional load (kWh) + city
+function extensionCost(addl, city){
+  if(addl==null||addl<=0) return 0;
+  const rc=rateCardFor(city); if(!rc) return null;        // unknown city
+  if(rc.kind==='stepped') return addl>rc.step ? rc.flat2 : rc.flat1;
+  return Math.round(rc.rate*addl);
+}
+// Transformer needed? (Bangalore >25 kWh, others >40 kWh)
+function transformerNeeded(addl, city){
+  if(addl==null||addl<=0) return false;
+  const rc=rateCardFor(city); if(!rc) return addl>40;     // default threshold
+  return addl>rc.txKw;
+}
 function recompute(){
   const region=CITY;
   const u = RAW.universe.filter(p=>inRegion(p,region));
@@ -1098,41 +1132,6 @@ function pct(a,b){ return (b>0)?(a/b*100).toFixed(0)+'%' : '—'; }
 // Recommendation: enhance if benefit is positive & material; reject if notes flag low traffic
 // or benefit is negligible; pending if rider inputs are missing.
 function num(v){ const n=Number(v); return (v==null||v===""||isNaN(n))?null:n; }
-
-/* ============ CITY RATE CARD (extension cost) ============ */
-// Per-kWh cities: extension_cost = rate × additional_load
-// Hyderabad: stepped flat — ₹50k if addl ≤ 10 kWh, ₹1L if addl > 10 kWh
-// Transformer trigger: Bangalore > 25 kWh (max 40 with extensions); others > 40 kWh
-const CITY_RATE_CARD = {
-  bangalore: { rate: 3000,  txKw: 25, maxLoad: 40, kind: 'perkwh' },
-  delhi:     { rate: 5000,  txKw: 40, kind: 'perkwh' },
-  mumbai:    { rate: 10000, txKw: 40, kind: 'perkwh' },
-  gurgaon:   { rate: 2500,  txKw: 40, kind: 'perkwh' },
-  hyderabad: { rate: 0,     txKw: 40, kind: 'stepped', flat1: 50000, flat2: 100000, step: 10 }
-};
-function cityKey(c){ return String(c||'').toLowerCase().replace(/\s+/g,'').trim(); }
-function rateCardFor(c){
-  const k=cityKey(c);
-  if(k.includes('bengal')||k.includes('bangal')) return CITY_RATE_CARD.bangalore;
-  if(k.includes('delhi')) return CITY_RATE_CARD.delhi;
-  if(k.includes('mumbai')||k.includes('bombay')) return CITY_RATE_CARD.mumbai;
-  if(k.includes('gurgaon')||k.includes('gurugram')) return CITY_RATE_CARD.gurgaon;
-  if(k.includes('hyderabad')||k.includes('hyd')) return CITY_RATE_CARD.hyderabad;
-  return null;
-}
-// Extension cost (₹) for a given additional load (kWh) + city
-function extensionCost(addl, city){
-  if(addl==null||addl<=0) return 0;
-  const rc=rateCardFor(city); if(!rc) return null;        // unknown city
-  if(rc.kind==='stepped') return addl>rc.step ? rc.flat2 : rc.flat1;
-  return Math.round(rc.rate*addl);
-}
-// Transformer needed? (Bangalore >25 kWh, others >40 kWh)
-function transformerNeeded(addl, city){
-  if(addl==null||addl<=0) return false;
-  const rc=rateCardFor(city); if(!rc) return addl>40;     // default threshold
-  return addl>rc.txKw;
-}
 function buildROI(){
   const A=RAW.assessed, R=RAW.roi;
   const byId={}; A.forEach(p=>{ byId[String(p.pod_id)]=p; });
