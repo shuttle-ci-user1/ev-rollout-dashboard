@@ -81,7 +81,7 @@ tbody tr:hover{background:#f8fafc}
 /* tile KPIs (reference format: horizontal row) */
 .kpi-row{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 14px;margin-bottom:8px;align-items:stretch}
 .kpi-block{flex:0 0 150px;display:flex;flex-direction:column;gap:6px}
-.kpi-big{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;position:relative;overflow:hidden}
+.kpi-big{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px;text-align:center;position:relative;overflow:hidden;height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .kpi-big::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--navy)}
 .kpi-big.acc-navy::before{background:var(--navy)}.kpi-big.acc-blue::before{background:var(--blue)}
 .kpi-big.acc-teal::before{background:var(--teal)}.kpi-big.acc-amber::before{background:var(--amber)}
@@ -92,15 +92,15 @@ tbody tr:hover{background:#f8fafc}
 .kpi-big .sub{font-size:10px;color:var(--muted);margin-top:4px}
 .kpi-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .kpi-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-.kpi-sm{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center}
+.kpi-sm{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 4px;text-align:center;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .kpi-sm .slbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
 .kpi-sm .snum{font-size:18px;font-weight:800;line-height:1}
 .kpi-sm.live .slbl{color:var(--green)}.kpi-sm.live .snum{color:var(--green)}
 .kpi-sm.upc .slbl{color:var(--blue)}.kpi-sm.upc .snum{color:var(--blue)}
 .kpi-sm.red .slbl{color:var(--red)}.kpi-sm.red .snum{color:var(--red)}
 /* 2x2 matrix */
-.kpi-matrix{flex:0 0 300px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
-.kpi-cell{border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.kpi-matrix{flex:0 0 300px;height:182px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
+.kpi-cell{border:1px solid var(--border);border-radius:8px;padding:6px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .kpi-cell .clbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
 .kpi-cell .cnum{font-size:26px;font-weight:800;line-height:1}
 .kpi-cell .csplit{font-size:11px;font-weight:700;margin-top:3px}
@@ -231,7 +231,9 @@ tbody tr:hover{background:#f8fafc}
       <span class="chip" id="asof">Data as of —</span>
       <span class="chip" id="batch">Batch —</span>
       <select id="cityFilter" class="chip" style="cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:20px;background:#fff;color:var(--navy);font-weight:600;font-size:12px;max-width:160px">
-        <option value="All">All cities</option>
+        <option value="All">All</option>
+        <option value="Top4">Top 4</option>
+        <option value="Top7">Top 7</option>
       </select>
       <label class="btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
         ⬆ Upload .xlsx
@@ -532,20 +534,25 @@ document.getElementById("fileInput").addEventListener("change",function(e){
 
 /* ============ CITY FILTER ============ */
 let RAW={universe:[],assessed:[],roi:[]};      // current parsed pod-level data
-let CITY="All";                                // selected city filter
+let CITY="All";                                // selected region filter: All | Top4 | Top7
+const TOP4=["Delhi","Gurgaon","Noida","Mumbai","Bangalore","Hyderabad"];      // NCR=Delhi+Gurgaon+Noida
+const TOP7=[...TOP4,"Kolkata","Pune","Chennai"];
 function normCityKey(c){ if(!c) return ""; const s=String(c).trim(); const m={gurugram:"Gurgaon","noida 1":"Noida",pune:"Pune",delhi:"Delhi",mumbai:"Mumbai",chennai:"Chennai",bangalore:"Bangalore",hyderabad:"Hyderabad",kolkata:"Kolkata",gurgaon:"Gurgaon",noida:"Noida",faridabad:"Faridabad"}; return m[s.toLowerCase()]||s; }
+function inRegion(p,region){
+  if(region==="All") return true;
+  const c=normCityKey(p.city);
+  return region==="Top4" ? TOP4.includes(c) : TOP7.includes(c);
+}
 function populateCities(){
-  const cities=[...new Set(RAW.universe.map(p=>normCityKey(p.city)).filter(Boolean))].sort();
+  // options are static (All / Top 4 / Top 7); keep selection stable after upload
   const sel=document.getElementById("cityFilter");
-  const cur=sel.value||"All";
-  sel.innerHTML='<option value="All">All cities</option>'+cities.map(c=>`<option value="${c}">${c}</option>`).join("");
-  sel.value=cities.includes(cur)||cur==="All"?cur:"All";
+  sel.value=["All","Top4","Top7"].includes(sel.value)?sel.value:"All";
 }
 function recompute(){
-  const city=CITY;
-  const u = city==="All"?RAW.universe:RAW.universe.filter(p=>normCityKey(p.city)===city);
-  const a = city==="All"?RAW.assessed:RAW.assessed.filter(p=>normCityKey(p.city)===city);
-  const r = city==="All"?RAW.roi:RAW.roi.filter(p=>normCityKey(p.city)===city);
+  const region=CITY;
+  const u = RAW.universe.filter(p=>inRegion(p,region));
+  const a = RAW.assessed.filter(p=>inRegion(p,region));
+  const r = RAW.roi.filter(p=>inRegion(p,region));
   const kpis=computeKPIs(u,a,r);
   applyData(kpis);
 }
@@ -555,9 +562,9 @@ populateCities();
 document.getElementById("cityFilter").addEventListener("change",e=>{ CITY=e.target.value; recompute(); });
 
 /* ============ DRILL-THROUGH ============ */
-// Map a tile click to the set of pods it represents (respects current CITY filter)
-function cityUniverse(){ return CITY==="All"?RAW.universe:RAW.universe.filter(p=>normCityKey(p.city)===CITY); }
-function cityAssessed(){ return CITY==="All"?RAW.assessed:RAW.assessed.filter(p=>normCityKey(p.city)===CITY); }
+// Map a tile click to the set of pods it represents (respects current region filter)
+function cityUniverse(){ return RAW.universe.filter(p=>inRegion(p,CITY)); }
+function cityAssessed(){ return RAW.assessed.filter(p=>inRegion(p,CITY)); }
 function podsForTile(key){
   const u=cityUniverse(), a=cityAssessed();
   const today=new Date();
