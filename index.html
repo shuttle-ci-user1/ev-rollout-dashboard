@@ -493,6 +493,8 @@ function applyData(newData){
   const nlRest=nl.filter(p=>!/rejected by vendor/i.test(String(p.notes||"")));
   K.nlWip=nlRest.filter(p=>p.target_go_live&&w30(p.target_go_live)).length;
   K.nlYetToStart=nlRest.filter(p=>!p.target_go_live).length;
+  DATA.station_live=K.stationLive; DATA.station_not_live=K.stationNotLive;
+  DATA.nl_vendor_denied=K.nlVendorDenied; DATA.nl_wip30=K.nlWip; DATA.nl_yet_to_start=K.nlYetToStart;
   K.nocYesLive=DATA.noc_yes_live; K.nocYesUpc=DATA.noc_yes_upc;
   K.powerYes=DATA.power_yes; K.powerNo=DATA.power_no; K.powerUnknown=DATA.power_unknown;
   K.onlyPowerYes=DATA.only_power_yes; K.onlyPowerWip=DATA.only_power_wip; K.onlyPowerNo=DATA.only_power_no; K.onlyPowerTotal=DATA.only_power_total;
@@ -925,7 +927,8 @@ const K = {
   outOfScope: DATA.out_of_scope,
   nocYes: DATA.noc_yes, nocNo: DATA.noc_no, nocWip: DATA.noc_wip,
   nocYesLive: DATA.noc_yes_live, nocYesUpc: DATA.noc_yes_upc,
-  nocYesLive: DATA.noc_yes_live, nocYesUpc: DATA.noc_yes_upc,
+  stationLive: DATA.station_live, stationNotLive: DATA.station_not_live,
+  nlVendorDenied: DATA.nl_vendor_denied, nlWip: DATA.nl_wip30, nlYetToStart: DATA.nl_yet_to_start,
   powerYes: DATA.power_yes, powerNo: DATA.power_no, powerUnknown: DATA.power_unknown,
   onlyPowerYes: DATA.only_power_yes, onlyPowerWip: DATA.only_power_wip, onlyPowerNo: DATA.only_power_no, onlyPowerTotal: DATA.only_power_total,
   onlySpaceYes: DATA.only_space_yes, onlySpaceWip: DATA.only_space_wip, onlySpaceNo: DATA.only_space_no, onlySpaceTotal: DATA.only_space_total,
