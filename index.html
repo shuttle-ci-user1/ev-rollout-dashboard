@@ -665,7 +665,7 @@ function treeHTML(){
           {id:'noc_ok',name:'NOC Approved',count:K.nocApproved,sub:pct(K.nocApproved,K.feasible)+' of feas',type:'noc',children:[
             {id:'station_live',name:'Station Live',count:K.stationLive,sub:pct(K.stationLive,K.nocApproved)+' of NOC ✓',type:'rollout',action:'→ Final Rollout',actionCls:'act-green'},
             {id:'station_notlive',name:'Station Not Live',count:K.stationNotLive,sub:pct(K.stationNotLive,K.nocApproved)+' of NOC ✓',type:'noc',children:[
-              {id:'nl_wip',name:'Work In Progress',sub2:'30d live · yet to start',count:K.nlWip+' · '+K.yetToStart,sub:'matches KPI tiles',type:'leaf-noc',action:'→ 30d live / start',actionCls:'act-amber'},
+              {id:'nl_wip',name:'Work In Progress',sub2:'within 30d live target',count:K.nlWip,sub:'matches Upcoming tile',type:'leaf-noc',action:'→ 30d live / start',actionCls:'act-amber'},
               {id:'nl_vden',name:'Vendor Denied',sub2:'rejected by vendor',count:K.nlVendorDenied,sub:'of not live',type:'leaf-vendor',action:'→ Reassign vendor',actionCls:'act-amber'}
             ]},
             {id:'noc_upcoming',name:'Upcoming',sub2:'NOC always Yes',count:K.nocYesUpc,sub:'of NOC ✓',type:'noc',action:'→ Go-live plan',actionCls:'act-blue'},
