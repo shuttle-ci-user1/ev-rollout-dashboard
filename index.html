@@ -1030,16 +1030,17 @@ function renderT2(){
   </div>
   <div class="card"><h3>ROI Calculation — Power-Blocked + Vendor Interest <span class="sow">Scenario A enhance · B operate+CDC · C reject</span></h3>
     <div class="roi-grid">${ROI.map(roiCard).join('')}</div>
-    <div class="small muted" style="margin-top:10px">Decision rule: <b>enhance</b> if NPV_A&gt;0 ∧ payback≤24 ∧ NPV_A≥max(NPV_B,NPV_C); <b>operate</b> if NPV_B&gt;0 ∧ NPV_B≥max; else <b>reject</b>. Bangalore &gt;40 and &gt;100 kWh pods excluded from auto-recommendation.</div>
+    <div class="small muted" style="margin-top:10px"><b>Total extension cost: ${inr(ROI.reduce((s,r)=>s+(r.extCost||0),0))}</b> across ${ROI.filter(r=>r.extCost>0).length} pods · ${ROI.filter(r=>r.transformer).length} need transformer. Rate card: Bangalore ₹3k/kWh (tx&gt;25, max 40) · Delhi ₹5k · Mumbai ₹10k · Gurgaon ₹2.5k · Hyderabad ₹50k flat (≤10 kWh) / ₹1L flat (&gt;10 kWh). Decision rule: <b>enhance</b> if NPV_A&gt;0 ∧ payback≤24 ∧ NPV_A≥max(NPV_B,NPV_C); <b>operate</b> if NPV_B&gt;0 ∧ NPV_B≥max; else <b>reject</b>.</div>
   </div>
   <div class="card"><h3>Next-Step Action Table <span class="sow">no orphans — every pod has an owner + due date</span></h3>
-    <div class="scroll"><table><thead><tr><th>Pod</th><th>City</th><th>Present</th><th>Addl load</th><th>Lane</th><th>Recommendation</th><th>Annual benefit</th><th>Next action</th><th>Owner</th><th>Due</th></tr></thead>
-    <tbody>${ROI.map(r=>`<tr><td><b>${r.pod_id}</b></td><td>${r.city}</td><td>${r.present!=null?r.present+' kWh':'—'}</td><td>${r.addl!=null?r.addl+' kWh':'—'}</td><td>${r.rec==='disclaimer'?'Disclaimer':r.rec==='pending'?'Pending':'ROI-'+r.rec[0].toUpperCase()}</td><td><span class="rec ${r.rec}">${r.rec}</span></td><td>${r.annualBenefit!=null?inr(r.annualBenefit):'—'}</td><td>${r.next}</td><td>${r.owner}</td><td>${r.due}</td></tr>`).join('')}</tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>Pod</th><th>City</th><th>Present</th><th>Addl load</th><th>Ext cost</th><th>Lane</th><th>Recommendation</th><th>Annual benefit</th><th>Next action</th><th>Owner</th><th>Due</th></tr></thead>
+    <tbody>${ROI.map(r=>`<tr><td><b>${r.pod_id}</b></td><td>${r.city}</td><td>${r.present!=null?r.present+' kWh':'—'}</td><td>${r.addl!=null?r.addl+' kWh':'—'}</td><td>${r.extCost!=null?inr(r.extCost)+(r.transformer?' ⚙':''):'—'}</td><td>${r.rec==='disclaimer'?'Disclaimer':r.rec==='pending'?'Pending':'ROI-'+r.rec[0].toUpperCase()}</td><td><span class="rec ${r.rec}">${r.rec}</span></td><td>${r.annualBenefit!=null?inr(r.annualBenefit):'—'}</td><td>${r.next}</td><td>${r.owner}</td><td>${r.due}</td></tr>`).join('')}</tbody></table></div>
   </div>`;
 }
 function roiCard(r){
-  if(r.rec==='pending') return `<div class="roi-card pending"><div class="hd"><span class="pid">${r.pod_id} · ${r.pod_name}</span><span class="rec pending">pending</span></div><div class="small muted">${r.city} · present ${r.present!=null?r.present+' kWh':'—'} · addl ${r.addl!=null?r.addl+' kWh':'—'}</div><div class="callout" style="margin-top:8px">⚠ ${r.next}</div><div style="font-size:11px;color:var(--muted);margin-top:6px"><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div></div>`;
-  if(r.rec==='disclaimer') return `<div class="roi-card disclaimer"><div class="hd"><span class="pid">${r.pod_id} · ${r.pod_name}</span><span class="rec disclaimer">disclaimer</span></div><div class="small muted">${r.city} · total ${r.total!=null?r.total+' kWh':'—'} — exceeds 100 kWh</div><div class="disclaimer" style="margin-top:8px">⚠ ${r.next}</div><div style="font-size:11px;color:var(--muted);margin-top:6px"><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div></div>`;
+  const txFmt = r.transformer ? ' <span style="color:#dc2626;font-weight:700">⚙ Transformer</span>' : '';
+  if(r.rec==='pending') return `<div class="roi-card pending"><div class="hd"><span class="pid">${r.pod_id} · ${r.pod_name}</span><span class="rec pending">pending</span></div><div class="small muted">${r.city} · present ${r.present!=null?r.present+' kWh':'—'} · addl ${r.addl!=null?r.addl+' kWh':'—'}</div><div class="callout" style="margin-top:8px">⚠ ${r.next}</div><div class="small" style="margin-top:6px"><b>Extension cost:</b> ${r.extCost!=null?inr(r.extCost):'—'}${txFmt}</div><div style="font-size:11px;color:var(--muted);margin-top:6px"><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div></div>`;
+  if(r.rec==='disclaimer') return `<div class="roi-card disclaimer"><div class="hd"><span class="pid">${r.pod_id} · ${r.pod_name}</span><span class="rec disclaimer">disclaimer</span></div><div class="small muted">${r.city} · total ${r.total!=null?r.total+' kWh':'—'} — exceeds 100 kWh</div><div class="disclaimer" style="margin-top:8px">⚠ ${r.next}</div><div class="small" style="margin-top:6px"><b>Extension cost:</b> ${r.extCost!=null?inr(r.extCost):'—'}${txFmt}</div><div style="font-size:11px;color:var(--muted);margin-top:6px"><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div></div>`;
   const win={enhance:'A',operate:'B',reject:'C'}[r.rec]||'C';
   return `<div class="roi-card ${r.rec}">
     <div class="hd"><span class="pid">${r.pod_id} · ${r.pod_name}</span><span class="rec ${r.rec}">${r.rec}</span></div>
@@ -1050,7 +1051,7 @@ function roiCard(r){
       <div class="s ${win==='C'?'win':''}"><div class="h">C · Reject</div><div class="v">₹0</div></div>
     </div>
     <div class="meta"><span>Annual benefit ${inr(r.annualBenefit)}</span><span>Riders ${r.riders||'—'}${r.addRiders?'+ '+r.addRiders:'  —'}</span></div>
-    <div class="next"><b>Next:</b> ${r.next}<br><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div>
+    <div class="next"><b>Extension cost:</b> ${r.extCost!=null?inr(r.extCost):'—'}${txFmt}<br><b>Next:</b> ${r.next}<br><b>Owner:</b> ${r.owner} · <b>Due:</b> ${r.due}</div>
   </div>`;
 }
 
@@ -1097,6 +1098,41 @@ function pct(a,b){ return (b>0)?(a/b*100).toFixed(0)+'%' : '—'; }
 // Recommendation: enhance if benefit is positive & material; reject if notes flag low traffic
 // or benefit is negligible; pending if rider inputs are missing.
 function num(v){ const n=Number(v); return (v==null||v===""||isNaN(n))?null:n; }
+
+/* ============ CITY RATE CARD (extension cost) ============ */
+// Per-kWh cities: extension_cost = rate × additional_load
+// Hyderabad: stepped flat — ₹50k if addl ≤ 10 kWh, ₹1L if addl > 10 kWh
+// Transformer trigger: Bangalore > 25 kWh (max 40 with extensions); others > 40 kWh
+const CITY_RATE_CARD = {
+  bangalore: { rate: 3000,  txKw: 25, maxLoad: 40, kind: 'perkwh' },
+  delhi:     { rate: 5000,  txKw: 40, kind: 'perkwh' },
+  mumbai:    { rate: 10000, txKw: 40, kind: 'perkwh' },
+  gurgaon:   { rate: 2500,  txKw: 40, kind: 'perkwh' },
+  hyderabad: { rate: 0,     txKw: 40, kind: 'stepped', flat1: 50000, flat2: 100000, step: 10 }
+};
+function cityKey(c){ return String(c||'').toLowerCase().replace(/\s+/g,'').trim(); }
+function rateCardFor(c){
+  const k=cityKey(c);
+  if(k.includes('bengal')||k.includes('bangal')) return CITY_RATE_CARD.bangalore;
+  if(k.includes('delhi')) return CITY_RATE_CARD.delhi;
+  if(k.includes('mumbai')||k.includes('bombay')) return CITY_RATE_CARD.mumbai;
+  if(k.includes('gurgaon')||k.includes('gurugram')) return CITY_RATE_CARD.gurgaon;
+  if(k.includes('hyderabad')||k.includes('hyd')) return CITY_RATE_CARD.hyderabad;
+  return null;
+}
+// Extension cost (₹) for a given additional load (kWh) + city
+function extensionCost(addl, city){
+  if(addl==null||addl<=0) return 0;
+  const rc=rateCardFor(city); if(!rc) return null;        // unknown city
+  if(rc.kind==='stepped') return addl>rc.step ? rc.flat2 : rc.flat1;
+  return Math.round(rc.rate*addl);
+}
+// Transformer needed? (Bangalore >25 kWh, others >40 kWh)
+function transformerNeeded(addl, city){
+  if(addl==null||addl<=0) return false;
+  const rc=rateCardFor(city); if(!rc) return addl>40;     // default threshold
+  return addl>rc.txKw;
+}
 function buildROI(){
   const A=RAW.assessed, R=RAW.roi;
   const byId={}; A.forEach(p=>{ byId[String(p.pod_id)]=p; });
@@ -1139,7 +1175,8 @@ function buildROI(){
     else { rec='reject'; next='Reject — annual benefit ≤ 0.'; owner='City Leads'; due='+1 wk'; }
     return {pod_id:r.pod_id,pod_name:podName,city,total,enh,present,sanctioned,addl,
       annualBenefit,npvA,npvB,payback:null,rec,next,owner,due,
-      riders,addRiders};
+      riders,addRiders,
+      extCost:extensionCost(addl,city), transformer:transformerNeeded(addl,city)};
   });
   return rows;
 }
