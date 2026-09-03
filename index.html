@@ -1033,26 +1033,20 @@ function renderT1(){
 
 /* ============ TAB 3: NON-FEASIBLE + ROI ============ */
 function renderT2(){
-  // Power-blocked = space=Y, power=N (from assessed). Vendor-interest = has a row on ROI tab; no-vendor = the rest.
+  // Blockers — 4 non-exclusive types (a pod can appear in multiple buckets)
   const a=RAW.assessed.filter(p=>inRegion(p,CITY));
-  const powerBlocked=a.filter(p=>p.space_available==="Y"&&p.power_available==="N");
-  const roiIds=new Set(RAW.roi.map(r=>String(r.pod_id)));
-  const pwrV=powerBlocked.filter(p=>roiIds.has(String(p.pod_id))).length;
-  const pwrNV=powerBlocked.length-pwrV;
-  const maxLoad=a.filter(p=>{const n=String(p.notes||"").toLowerCase();return /exceeds 100|exceed 100|>100/.test(n);}).length;
-  const nocBlocked=a.filter(p=>p.store_status==="live"&&p.feasible&&(p.noc_status==="No"||p.noc_status==="WIP")).length;
-  const vendorBlocked=a.filter(p=>p.noc_status==="Yes"&&/rejected by vendor/i.test(String(p.notes||""))).length;
+  const nocBlocked=a.filter(p=>p.store_status==="live"&&p.feasible&&p.noc_status!=="Yes").length;
+  const vendorBlocked=a.filter(p=>/reject/i.test(String(p.notes||""))).length;
   const lanes=[
-    {k:'Space-blocked',v:K.nfSpace,d:'Re-site / redesign / deprioritize',cls:'space'},
-    {k:'Power-blocked (vendor interest)',v:pwrV,d:'→ ROI calculation (cards below)',cls:'power'},
-    {k:'Power-blocked (no vendor)',v:pwrNV,d:'Source vendor first',cls:'power'},
-    {k:'NOC-blocked',v:nocBlocked,d:'NOC acceleration track',cls:'noc'},
-    {k:'Vendor-blocked',v:vendorBlocked,d:'Reassignment engine',cls:'vendor'},
-    {k:'Exceeds max load (>100 kWh)',v:maxLoad,d:'Custom HV quote',cls:'max'}
+    {k:'No Space',v:a.filter(p=>p.space_available==="N").length,d:'Re-site / deprioritize',cls:'space',key:'blk_space'},
+    {k:'No Power',v:a.filter(p=>p.power_available==="N").length,d:'Power enhancement / ROI',cls:'power',key:'blk_power'},
+    {k:'No NOC',v:nocBlocked,d:'NOC acceleration',cls:'noc',key:'blk_noc'},
+    {k:'Vendor not willing',v:vendorBlocked,d:'Reassign vendor',cls:'vendor',key:'blk_vendor'}
   ];
   document.getElementById('t2').innerHTML=`
-  <div class="card"><h3>Non-Feasible Segmentation <span class="sow">every pod → exactly one next-step lane</span></h3>
-    <div class="lanes">${lanes.map(l=>`<div class="lane ${l.cls}"><div class="h">${l.k}</div><div class="v">${l.v}</div><div class="d">${l.d}</div></div>`).join('')}</div>
+  <div class="card"><h3>Blockers <span class="sow">non-exclusive — a pod can appear in more than one bucket</span></h3>
+    <div class="lanes">${lanes.map(l=>`<div class="lane ${l.cls}" onclick="openModal('${l.k}','${l.key}')" style="cursor:pointer"><div class="h">${l.k}</div><div class="v">${l.v}</div><div class="d">${l.d}</div></div>`).join('')}</div>
+    <div class="small muted" style="margin-top:8px">A pod with both space and power blocked appears in both buckets. Counts overlap and do not sum to total.</div>
   </div>
   <div class="card"><h3>ROI Calculation — Power-Blocked + Vendor Interest <span class="sow">Scenario A enhance · B operate+CDC · C reject</span></h3>
     <div class="roi-grid">${ROI.map(roiCard).join('')}</div>
